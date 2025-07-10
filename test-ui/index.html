@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parliament Pulse - Analysis Testing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .input-section {
+            padding: 40px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .results-section {
+            padding: 40px;
+            background: white;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 200px;
+            font-family: inherit;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .result-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sentiment-score {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .sentiment-positive {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .sentiment-negative {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .sentiment-neutral {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .score-bar {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .score-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .score-fill.positive {
+            background: #48bb78;
+        }
+
+        .score-fill.negative {
+            background: #f56565;
+        }
+
+        .score-fill.neutral {
+            background: #a0aec0;
+        }
+
+        .spam-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .spam-yes {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .spam-no {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Parliament Pulse</h1>
+            <p>Test the Email Analysis Toolkit</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">📧 Email Content</h2>
+                
+                <form id="analyzeForm">
+                    <div class="form-group">
+                        <label for="subject">Subject (Optional)</label>
+                        <input type="text" id="subject" placeholder="Email subject line">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sender">Sender Email (Optional)</label>
+                        <input type="email" id="sender" placeholder="sender@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="emailText">Email Text *</label>
+                        <textarea 
+                            id="emailText" 
+                            placeholder="Paste the email content here to analyze sentiment, detect spam, and extract topics..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="analyze-btn" id="analyzeBtn">
+                        Analyze Email
+                    </button>
+                </form>
+            </div>
+
+            <div class="results-section">
+                <h2 class="section-title">📊 Analysis Results</h2>
+                
+                <div class="loading" id="loading">
+                    <p>🔄 Analyzing email content...</p>
+                </div>
+
+                <div class="error" id="error"></div>
+
+                <div class="results" id="results">
+                    <div class="result-card">
+                        <h3>😊 Sentiment Analysis</h3>
+                        <div id="sentimentResults"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🛡️ Spam Detection</h3>
+                        <div id="spamResults"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🏷️ Topic Classification</h3>
+                        <div id="topicResults"></div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>🔧 Text Processing</h3>
+                        <div id="processingResults"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:8000';
+
+        document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const emailText = document.getElementById('emailText').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const sender = document.getElementById('sender').value.trim();
+
+            if (!emailText) {
+                showError('Please enter some email text to analyze.');
+                return;
+            }
+
+            // Show loading state
+            showLoading();
+            hideError();
+            hideResults();
+
+            try {
+                const response = await fetch(`${API_BASE}/api/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: emailText,
+                        subject: subject || 'Test Email',
+                        sender_email: sender || 'test@example.com'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data.analysis);
+                } else {
+                    showError('Analysis failed: ' + data.message);
+                }
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showError('Failed to analyze email. Make sure the backend server is running on http://127.0.0.1:8000');
+            }
+
+            hideLoading();
+        });
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('analyzeBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('show');
+        }
+
+        function hideResults() {
+            document.getElementById('results').classList.remove('show');
+        }
+
+        function displayResults(analysis) {
+            // Sentiment Analysis
+            const sentiment = analysis.sentiment || {};
+            const sentimentDiv = document.getElementById('sentimentResults');
+            sentimentDiv.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <span class="sentiment-score sentiment-${sentiment.sentiment?.toLowerCase() || 'neutral'}">
+                        ${sentiment.sentiment || 'Unknown'}
+                    </span>
+                    <span style="margin-left: 10px; color: #4a5568;">
+                        Compound Score: ${sentiment.scores?.compound?.toFixed(3) || 'N/A'}
+                    </span>
+                </div>
+                
+                <div style="margin-bottom: 10px;">
+                    <small style="color: #718096;">Positive (${((sentiment.scores?.positive || 0) * 100).toFixed(1)}%)</small>
+                    <div class="score-bar">
+                        <div class="score-fill positive" style="width: ${(sentiment.scores?.positive || 0) * 100}%"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 10px;">
+                    <small style="color: #718096;">Negative (${((sentiment.scores?.negative || 0) * 100).toFixed(1)}%)</small>
+                    <div class="score-bar">
+                        <div class="score-fill negative" style="width: ${(sentiment.scores?.negative || 0) * 100}%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <small style="color: #718096;">Neutral (${((sentiment.scores?.neutral || 0) * 100).toFixed(1)}%)</small>
+                    <div class="score-bar">
+                        <div class="score-fill neutral" style="width: ${(sentiment.scores?.neutral || 0) * 100}%"></div>
+                    </div>
+                </div>
+            `;
+
+            // Spam Detection
+            const spam = analysis.spam_detection || {};
+            const spamDiv = document.getElementById('spamResults');
+            spamDiv.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <span class="spam-indicator spam-${spam.is_spam ? 'yes' : 'no'}">
+                        ${spam.is_spam ? 'SPAM DETECTED' : 'NOT SPAM'}
+                    </span>
+                    <span style="margin-left: 10px; color: #4a5568;">
+                        Confidence: ${((spam.confidence || 0) * 100).toFixed(1)}%
+                    </span>
+                </div>
+                <p style="color: #718096; font-size: 14px;">
+                    ${spam.is_spam 
+                        ? 'This email appears to be spam based on content analysis.' 
+                        : 'This email appears to be legitimate correspondence.'}
+                </p>
+            `;
+
+            // Topic Classification
+            const topic = analysis.topic_modeling || {};
+            const topicDiv = document.getElementById('topicResults');
+            
+            // Handle both old and new topic formats
+            const topicLabel = topic.topic_label || 'Uncategorized';
+            const topicId = topic.topic_id !== undefined ? topic.topic_id : 'N/A';
+            const confidence = topic.confidence !== undefined ? topic.confidence : null;
+            const keywords = topic.keywords || [];
+            const allScores = topic.all_scores || {};
+            const method = topic.method || 'unknown';
+            
+            let topicHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #2d3748;">Primary Topic:</strong> 
+                    <span style="color: #667eea; font-weight: 600;">${topicLabel}</span>
+                    ${confidence !== null ? `
+                        <span style="margin-left: 10px; color: #4a5568; font-size: 14px;">
+                            (${(confidence * 100).toFixed(1)}% confidence)
+                        </span>
+                    ` : ''}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #2d3748;">Classification Method:</strong> 
+                    <span style="color: #4a5568; font-size: 14px; text-transform: capitalize;">
+                        ${method.replace('-', ' ')}
+                    </span>
+                </div>
+            `;
+            
+            // Show confidence bar if available
+            if (confidence !== null) {
+                topicHTML += `
+                    <div style="margin-bottom: 15px;">
+                        <small style="color: #718096;">Confidence Level</small>
+                        <div class="score-bar">
+                            <div class="score-fill positive" style="width: ${confidence * 100}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Show related topics/keywords
+            if (keywords && keywords.length > 0) {
+                topicHTML += `
+                    <div style="margin-bottom: 15px;">
+                        <strong style="color: #2d3748;">Related Topics:</strong>
+                        <div style="margin-top: 8px;">
+                            ${keywords.map((keyword, index) => {
+                                const isMain = index === 0;
+                                const bgColor = isMain ? '#667eea' : '#e2e8f0';
+                                const textColor = isMain ? 'white' : '#4a5568';
+                                return `<span style="background: ${bgColor}; color: ${textColor}; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin: 2px; display: inline-block;">${keyword}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Show detailed scores if available
+            if (Object.keys(allScores).length > 0) {
+                const sortedScores = Object.entries(allScores)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5); // Show top 5 scores
+                
+                topicHTML += `
+                    <div>
+                        <strong style="color: #2d3748;">Detailed Scores:</strong>
+                        <div style="margin-top: 8px; font-size: 13px;">
+                            ${sortedScores.map(([topicName, score]) => `
+                                <div style="display: flex; justify-content: space-between; margin: 4px 0; padding: 2px 0;">
+                                    <span style="color: #4a5568;">${topicName}</span>
+                                    <span style="color: #667eea; font-weight: 500;">${(score * 100).toFixed(1)}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Show error information if available
+            if (topic.error) {
+                topicHTML += `
+                    <div style="margin-top: 15px; padding: 10px; background: #fed7d7; color: #742a2a; border-radius: 4px; font-size: 13px;">
+                        <strong>Error:</strong> ${topic.error}
+                    </div>
+                `;
+            }
+            
+            topicDiv.innerHTML = topicHTML;
+
+            // Text Processing
+            const processing = analysis.text_processing || {};
+            const processingDiv = document.getElementById('processingResults');
+            processingDiv.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px;">
+                    <div>
+                        <strong style="color: #2d3748;">Character Count:</strong><br>
+                        <span style="color: #4a5568;">${analysis.input?.text_length || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #2d3748;">Word Count:</strong><br>
+                        <span style="color: #4a5568;">${processing.word_count || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #2d3748;">Sentence Count:</strong><br>
+                        <span style="color: #4a5568;">${processing.sentence_count || 'N/A'}</span>
+                    </div>
+                    <div>
+                        <strong style="color: #2d3748;">Reading Level:</strong><br>
+                        <span style="color: #4a5568;">${processing.reading_level || 'N/A'}</span>
+                    </div>
+                </div>
+                ${processing.cleaned_preview ? `
+                    <div style="margin-top: 15px;">
+                        <strong style="color: #2d3748;">Cleaned Text Preview:</strong>
+                        <div style="background: #f1f5f9; padding: 10px; border-radius: 4px; margin-top: 8px; font-size: 13px; color: #475569;">
+                            ${processing.cleaned_preview}...
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+</body>
+</html> 

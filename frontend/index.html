@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parliament Pulse - Constituent Email Analysis</title>
+    
+    <!-- SEO and Meta Tags -->
+    <meta name="description" content="Privacy-first email analysis dashboard for parliamentarians">
+    <meta name="author" content="Parliament Pulse">
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Inter font for clean UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Heroicons for beautiful icons -->
+    <script src="https://cdn.jsdelivr.net/npm/heroicons@2.0.18/24/outline/index.js"></script>
+    
+    <!-- Security headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <!-- Favicon (placeholder) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <h2 class="text-xl font-semibold text-gray-800">Parliament Pulse</h2>
+            <p class="text-gray-600">Loading your dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app" class="min-h-screen hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo and Title -->
+                    <div class="flex items-center space-x-3">
+                        <div class="text-2xl">🏛️</div>
+                        <div>
+                            <h1 class="text-xl font-bold text-gray-900">Parliament Pulse</h1>
+                            <p class="text-sm text-gray-500">Constituent Email Analysis</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Indicator -->
+                    <div id="connection-status" class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-sm text-gray-600">Connected</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Dashboard Controls -->
+            <div id="dashboard-controls" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                <div class="flex flex-wrap items-center gap-4">
+                    <!-- Date Range Picker -->
+                    <div class="flex items-center space-x-2">
+                        <label for="start-date" class="text-sm font-medium text-gray-700">From:</label>
+                        <input type="date" id="start-date" class="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <label for="end-date" class="text-sm font-medium text-gray-700">To:</label>
+                        <input type="date" id="end-date" class="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                    </div>
+                    
+                    <!-- Granularity Selector -->
+                    <div class="flex items-center space-x-2">
+                        <label for="granularity" class="text-sm font-medium text-gray-700">Group by:</label>
+                        <select id="granularity" class="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                            <option value="day">Day</option>
+                            <option value="week" selected>Week</option>
+                            <option value="month">Month</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Refresh Button -->
+                    <button id="refresh-data" class="ml-auto bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors">
+                        <span class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Refresh</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div id="kpi-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Total Emails Card -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Emails</p>
+                            <p id="total-emails" class="text-2xl font-bold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Average Sentiment Card -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.5a1.5 1.5 0 000-3H9v3zm3 0H9m3 0a1.5 1.5 0 100-3m-3 3V7a1.5 1.5 0 011.5-1.5M12 21V3"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Average Sentiment</p>
+                            <p id="avg-sentiment" class="text-2xl font-bold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Unique Topics Card -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-secondary-100 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Unique Topics</p>
+                            <p id="unique-topics" class="text-2xl font-bold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Email Volume Trend Chart -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Email Volume Trend</h3>
+                    <div class="h-80">
+                        <canvas id="email-trend-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Top Topics Chart -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Topics</h3>
+                    <div class="h-80">
+                        <canvas id="topics-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Sentiment by Topic Chart -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 lg:col-span-2">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Sentiment by Topic</h3>
+                    <div class="h-96">
+                        <canvas id="sentiment-topic-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="fixed inset-0 bg-white flex items-center justify-center z-40 hidden">
+        <div class="text-center max-w-md">
+            <div class="w-16 h-16 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Connection Error</h2>
+            <p class="text-gray-600 mb-4" id="error-message">Unable to connect to the backend server.</p>
+            <button id="retry-connection" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors">
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <!-- TypeScript Application Entry Point -->
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html> 

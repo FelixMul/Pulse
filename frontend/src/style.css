@@ -1,0 +1,118 @@
+/* Parliament Pulse - Main Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom component styles */
+@layer components {
+  /* Form controls */
+  .form-input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+  }
+  
+  .form-select {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm;
+  }
+  
+  /* Button variants */
+  .btn-primary {
+    @apply bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors;
+  }
+  
+  .btn-outline {
+    @apply border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors;
+  }
+  
+  /* Card styles */
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+  }
+  
+  .card-header {
+    @apply border-b border-gray-200 pb-4 mb-4;
+  }
+  
+  /* Chart container */
+  .chart-container {
+    @apply relative h-80 w-full;
+  }
+  
+  /* Loading states */
+  .loading-spinner {
+    @apply animate-spin rounded-full border-b-2 border-primary-600;
+  }
+  
+  /* Status indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+  
+  .status-connected {
+    @apply bg-green-500;
+  }
+  
+  .status-disconnected {
+    @apply bg-red-500;
+  }
+  
+  .status-loading {
+    @apply bg-yellow-500 animate-pulse;
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Chart.js canvas styling */
+  .chart-canvas {
+    @apply w-full h-full;
+  }
+}
+
+/* Base layer customizations */
+@layer base {
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Focus styles */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-600;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+} 

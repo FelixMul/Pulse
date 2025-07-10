@@ -1,0 +1,40 @@
+# Core Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+
+# Database
+datasets==3.2.0
+pandas==2.2.3
+sqlalchemy==2.0.36
+
+# Google APIs and OAuth
+google-auth==2.37.0
+google-auth-oauthlib==1.2.1
+google-api-python-client==2.154.0
+keyring==25.5.0
+
+# NLP and ML
+torch==2.7.1
+transformers==4.47.1
+scikit-learn==1.6.0
+vaderSentiment==3.3.2
+bertopic==0.16.4
+sentence-transformers==3.3.1
+umap-learn==0.5.7
+hdbscan==0.8.40
+
+# Text Processing
+nltk==3.9.1
+spacy==3.8.2
+beautifulsoup4==4.12.3
+html2text==2024.2.26
+
+# HTTP and Networking
+requests==2.32.3
+httpx==0.28.1
+
+# Development and Security
+python-dotenv==1.0.1
+pydantic==2.10.4
+pydantic-settings==2.8.2 
