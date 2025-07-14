@@ -72,6 +72,16 @@ MP-Project/
 │   ├── tailwind.config.js
 │   └── tsconfig.json
 ├── src-tauri/                  # Tauri configuration (Phase 7)
+├── Model Finetuning/           # Custom ML model training
+│   ├── data_creation/          # Synthetic dataset generation
+│   │   └── emails_data/        # Generated email dataset (1,250 emails)
+│   └── finetuning/             # Model training pipeline
+│       ├── data_preprocessing.py   # Data loading and preprocessing
+│       ├── topic_classifier.py     # Topic model training
+│       ├── sentiment_classifier.py # Sentiment model training
+│       ├── models/             # Saved trained models
+│       ├── notebooks/          # Jupyter notebooks for analysis
+│       └── outputs/            # Training logs, plots, metrics
 ├── data/                       # Local data storage
 │   └── emails.db              # SQLite database
 ├── .gitignore
@@ -176,34 +186,42 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 # 5. Language detection (English filter)
 ```
 
-### Phase 4: NLP Processing Pipeline (Day 3-4)
+### Phase 4: Custom ML Model Training and NLP Pipeline (Day 3-5)
 
-#### Step 4.1: Spam Detection
+#### Step 4.1: Dataset Generation and Preprocessing
 ```python
-# Lightweight spam classifier:
-# - Keyword-based filtering
-# - Sender reputation checking
-# - Subject line analysis
-# - Body content patterns
+# Synthetic dataset creation:
+# - 1,250 labeled emails with topics, sentiment, personas
+# - Multi-label topic classification (1-3 topics per email)
+# - 6-class sentiment analysis (Very Negative to Very Positive, Mixed)
+# - Realistic email content using LLM generation + post-processing
 ```
 
-#### Step 4.2: Topic Modeling with BERTopic
+#### Step 4.2: Custom Topic Classification Model
 ```python
-# BERTopic configuration:
-# - Use sentence-transformers for embeddings
-# - UMAP for dimensionality reduction
-# - HDBSCAN for clustering
-# - Dynamic topic number detection
-# - Minimum topic size: 10 emails
+# Fine-tuned DistilBERT for topic classification:
+# - Multi-label classification (emails can have multiple topics)
+# - Supervised learning on domain-specific data
+# - Cosine similarity evaluation for overlapping topics
+# - Expected F1-score: >0.85, Cosine similarity: >0.90
 ```
 
-#### Step 4.3: Sentiment Analysis
+#### Step 4.3: Custom Sentiment Analysis Model
 ```python
-# vaderSentiment integration:
-# - Handles social media text well
-# - Fast processing for real-time analysis
-# - Combines lexicon and rules-based approach
-# - Returns compound score (-1 to +1)
+# Fine-tuned DistilBERT for sentiment analysis:
+# - 6-class classification (Very Negative, Negative, Neutral, Positive, Very Positive, Mixed)
+# - Supervised learning on constituent email language patterns
+# - Handles formal/informal writing styles, political discourse
+# - Expected accuracy: >0.90, F1-score: >0.85
+```
+
+#### Step 4.4: Model Integration and Deployment
+```python
+# Integration into NLP processor:
+# - Load trained models for real-time inference
+# - Batch processing for email sync
+# - Confidence scoring and fallback handling
+# - Performance optimization with model caching
 ```
 
 ### Phase 5: API Development (Day 4-5)

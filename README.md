@@ -112,8 +112,9 @@ MP-Project/
 **Backend:**
 - FastAPI (Python web framework)
 - SQLite (local database)
-- BERTopic (topic modeling)
-- vaderSentiment (sentiment analysis)
+- Fine-tuned DistilBERT (custom topic classification)
+- custom sentiment analysis -> not yet decided
+- HuggingFace Transformers (model framework)
 - Google API Client (Gmail integration)
 
 **Frontend:**
@@ -142,11 +143,18 @@ MP-Project/
 ## 📈 Current Status
 
 ✅ **Phase 1**: Project foundation and basic FastAPI backend  
-🚧 **Phase 2**: Database layer and email integration  
-⏳ **Phase 3**: NLP processing pipeline  
+✅ **Phase 2**: Database layer and email integration  
+🚧 **Phase 3**: NLP processing pipeline with custom model training  
 ⏳ **Phase 4**: Dashboard API endpoints  
 ⏳ **Phase 5**: Frontend dashboard completion  
-⏳ **Phase 6**: Tauri desktop packaging  
+⏳ **Phase 6**: Tauri desktop packaging
+
+### 🎯 Recent Progress: Custom ML Models
+
+✅ **Synthetic Dataset**: Generated 1,250 labeled emails with topics, sentiment, and personas  
+✅ **Model Training Pipeline**: DistilBERT fine-tuning framework for topic and sentiment classification  
+🚧 **Model Training**: In progress - training custom models on domain-specific data  
+⏳ **Model Integration**: Integrate trained models into backend NLP processor  
 
 See [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) for detailed development roadmap.
 
