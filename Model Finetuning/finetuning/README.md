@@ -44,20 +44,53 @@ Input Text → DistilBERT Encoder → [CLS] Token → Classification Head → Pr
 - Loss function: Cross-Entropy
 - Output: Single sentiment class with confidence scores
 
+## 🚀 Quick Start
+
+### 1. Pre-download Models (Recommended)
+```bash
+# Download and cache DistilBERT model locally (run once)
+python download_models.py
+
+# This creates ./cached_models/ directory with model files
+# Subsequent training runs will use cached models instead of re-downloading
+```
+
+### 2. Train Topic Classification Model
+```bash
+# Basic training (3 epochs, cached models)
+python topic_classifier.py
+
+# Custom training with larger batch size
+python topic_classifier.py --epochs 5 --batch_size 64 --learning_rate 2e-5
+
+# All available options
+python topic_classifier.py --help
+```
+
+### 3. Monitor Training Progress
+```bash
+# Real-time training visualization (run in separate terminal)
+tensorboard --logdir ./models/topic_model/logs
+# Open: http://localhost:6006
+```
+
 ## 📁 File Structure
 
 ```
 finetuning/
 ├── README.md                    # This file
 ├── requirements.txt             # Python dependencies
+├── download_models.py           # Pre-download HuggingFace models
 ├── data_preprocessing.py        # Dataset loading and preprocessing
 ├── topic_classifier.py         # Topic classification training
-├── sentiment_classifier.py     # Sentiment analysis training
 ├── evaluation.py               # Model evaluation utilities
+├── cached_models/              # Cached HuggingFace models (created after download_models.py)
 ├── models/                     # Saved trained models
 │   ├── topic_model/            # Fine-tuned topic classifier
-│   └── sentiment_model/        # Fine-tuned sentiment classifier
-├── notebooks/                  # Jupyter notebooks for EDA and experiments
+│   │   ├── plots/              # Training visualizations
+│   │   └── logs/               # TensorBoard logs
+├── outputs/                    # Evaluation results and metrics
+└── notebooks/                  # Jupyter notebooks for EDA and experiments
 │   ├── data_exploration.ipynb  # Dataset exploration and visualization
 │   └── model_experiments.ipynb # Model training experiments
 └── outputs/                    # Training logs, plots, metrics

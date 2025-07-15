@@ -10,6 +10,11 @@ import ast
 import re
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
+try:
+    from skmultilearn.model_selection import iterative_train_test_split
+    ITERATIVE_SPLIT_AVAILABLE = True
+except ImportError:
+    ITERATIVE_SPLIT_AVAILABLE = False
 import torch
 from transformers import DistilBertTokenizer
 
@@ -204,16 +209,61 @@ class EmailDataProcessor:
         """
         print(f"Splitting data: train/val/test")
         
-        # First split: train+val vs test
-        X_temp, X_test, y_temp, y_test = train_test_split(
-            texts, labels, test_size=test_size, random_state=random_state, stratify=labels
-        )
+        # Check if multi-label (2D array) or single-label (1D array)
+        is_multilabel = len(labels.shape) > 1 and labels.shape[1] > 1
         
-        # Second split: train vs val
-        val_size_adjusted = val_size / (1 - test_size)
-        X_train, X_val, y_train, y_val = train_test_split(
-            X_temp, y_temp, test_size=val_size_adjusted, random_state=random_state, stratify=y_temp
-        )
+        if is_multilabel:
+            # For multi-label, try iterative stratification if available, otherwise random
+            if ITERATIVE_SPLIT_AVAILABLE:
+                print("Multi-label detected - using iterative stratification")
+                try:
+                    # Convert to format expected by iterative_train_test_split
+                    X_array = np.array(texts).reshape(-1, 1)
+                    X_temp, y_temp, X_test, y_test = iterative_train_test_split(
+                        X_array, labels, test_size=test_size
+                    )
+                    X_temp = X_temp.flatten()
+                    X_test = X_test.flatten()
+                    
+                    # Second split: train vs val
+                    val_size_adjusted = val_size / (1 - test_size)
+                    X_train, y_train, X_val, y_val = iterative_train_test_split(
+                        X_temp.reshape(-1, 1), y_temp, test_size=val_size_adjusted
+                    )
+                    X_train = X_train.flatten()
+                    X_val = X_val.flatten()
+                except Exception as e:
+                    print(f"Iterative stratification failed: {e}, falling back to random split")
+                    X_temp, X_test, y_temp, y_test = train_test_split(
+                        texts, labels, test_size=test_size, random_state=random_state
+                    )
+                    val_size_adjusted = val_size / (1 - test_size)
+                    X_train, X_val, y_train, y_val = train_test_split(
+                        X_temp, y_temp, test_size=val_size_adjusted, random_state=random_state
+                    )
+            else:
+                print("Multi-label detected - using random split (skmultilearn not available)")
+                X_temp, X_test, y_temp, y_test = train_test_split(
+                    texts, labels, test_size=test_size, random_state=random_state
+                )
+                
+                # Second split: train vs val
+                val_size_adjusted = val_size / (1 - test_size)
+                X_train, X_val, y_train, y_val = train_test_split(
+                    X_temp, y_temp, test_size=val_size_adjusted, random_state=random_state
+                )
+        else:
+            # Single-label: can use stratify
+            print("Single-label detected - using stratified split")
+            X_temp, X_test, y_temp, y_test = train_test_split(
+                texts, labels, test_size=test_size, random_state=random_state, stratify=labels
+            )
+            
+            # Second split: train vs val
+            val_size_adjusted = val_size / (1 - test_size)
+            X_train, X_val, y_train, y_val = train_test_split(
+                X_temp, y_temp, test_size=val_size_adjusted, random_state=random_state, stratify=y_temp
+            )
         
         print(f"Split sizes - Train: {len(X_train)}, Val: {len(X_val)}, Test: {len(X_test)}")
         
