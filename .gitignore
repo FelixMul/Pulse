@@ -95,4 +95,6 @@ htmlcov/
 # NLP models and data
 models/
 *.pkl
-*.model 
+*.model
+
+.cursor
