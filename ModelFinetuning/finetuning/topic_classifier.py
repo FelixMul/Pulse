@@ -189,8 +189,8 @@ class TopicClassifierTrainer:
     
     def train(self, train_dataset: EmailTopicDataset, val_dataset: EmailTopicDataset,
               output_dir: str = './models/topic_model',
-              num_epochs: int = 3,
-              batch_size: int = 16,
+              num_epochs: int = 40,
+              batch_size: int = 32,
               learning_rate: float = 2e-5,
               warmup_steps: int = 100):
         """Train the topic classification model."""
@@ -267,7 +267,7 @@ class TopicClassifierTrainer:
             eval_dataset=val_dataset,
             compute_metrics=self.compute_metrics,
             callbacks=[
-                EarlyStoppingCallback(early_stopping_patience=10),
+                EarlyStoppingCallback(early_stopping_patience=50),
                 TrainingHistoryCallback(self)
             ]
         )
@@ -403,7 +403,7 @@ class TopicClassifierTrainer:
         
         # Apply sigmoid to get probabilities
         probs = torch.sigmoid(torch.from_numpy(logits)).numpy()
-        pred_binary = (probs > 0.5).astype(int)
+        pred_binary = (probs > 0.4).astype(int)
         
         # Compute comprehensive metrics
         metrics = self.compute_metrics((logits, labels))
@@ -516,16 +516,19 @@ def main():
     print("Loading and preprocessing data...")
     processor = EmailDataProcessor()
     df = processor.load_data()
+    # For test set, load from the new test file
+    test_df = pd.read_csv("../../data/email_dataset_test.csv")
     
     # Prepare topic data
     texts, labels, topic_names = processor.prepare_topic_data(df)
+    test_texts, test_labels, _ = processor.prepare_topic_data(test_df)
     
     # Split data
-    X_train, X_val, X_test, y_train, y_val, y_test = processor.split_data(texts, labels)
+    X_train, X_val, _, y_train, y_val, _ = processor.split_data(texts, labels)
     
     print(f"Training set: {len(X_train)} samples")
     print(f"Validation set: {len(X_val)} samples")
-    print(f"Test set: {len(X_test)} samples")
+    print(f"Test set: {len(test_texts)} samples (from email_dataset_test.csv)")
     print(f"Number of topics: {len(topic_names)}")
     print(f"Topics: {topic_names}")
     
@@ -537,7 +540,7 @@ def main():
     train_dataset, val_dataset = trainer.create_datasets(
         X_train, y_train, X_val, y_val, args.max_length
     )
-    test_dataset = EmailTopicDataset(X_test, y_test, trainer.tokenizer, args.max_length)
+    test_dataset = EmailTopicDataset(test_texts, test_labels, trainer.tokenizer, args.max_length)
     
     # Train model
     trainer.train(
@@ -571,19 +574,12 @@ def main():
     
     if overall_f1 < 0.3:
         print("⚠️  LOW PERFORMANCE DETECTED")
-        print("\n🔧 RECOMMENDED IMPROVEMENTS:")
-        print("1. 📈 INCREASE EPOCHS: Try 10-20 epochs instead of 3")
         print("2. 🎯 LOWER THRESHOLD: Current 0.5 might be too high for multi-label")
-        print("3. 📚 MORE DATA: Consider data augmentation or more training samples")
-        print("4. ⚙️  TUNE HYPERPARAMETERS: Try different learning rates (1e-5, 5e-5)")
         
         if cosine_sim > 0.15:
             print("✅ Cosine similarity suggests model is learning topic relationships")
         else:
             print("❌ Low cosine similarity - model struggling with topic understanding")
-            
-        print(f"\n🚀 NEXT TRAINING COMMAND:")
-        print(f"python topic_classifier.py --epochs 15 --batch_size {args.batch_size} --learning_rate 1e-5")
             
     elif overall_f1 < 0.6:
         print("📈 MODERATE PERFORMANCE - Room for improvement")
@@ -596,4 +592,4 @@ def main():
     print(f"📈 TensorBoard: tensorboard --logdir {args.output_dir}/logs")
 
 if __name__ == "__main__":
-    main() 
+    main()

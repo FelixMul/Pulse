@@ -1,74 +1,41 @@
 # Parliament Pulse - Test UI
 
-A simple testing interface for the Parliament Pulse email analysis toolkit.
+A minimal interface for testing the Parliament Pulse email analysis backend.
 
-## How to Use
+## Quick Start
 
-### 1. Start the Backend Server
-
-First, make sure the backend server is running:
-
+### 1. Start the Backend Inference Server
+From the project root, run:
 ```bash
-cd backend
-source venv/bin/activate
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+python test-ui/inference_server.py
 ```
+This starts the backend at: http://localhost:8001
 
-### 2. Open the Test Interface
-
-Simply open `index.html` in your web browser:
-
+### 2. Serve the Frontend via Static Server
+From the project root, run:
 ```bash
-open test-ui/index.html
+python3 -m http.server 8080
+```
+This serves the UI at: http://localhost:8080/test-ui/index.html
+
+### 3. Open the Test UI
+In your browser, go to:
+```
+http://localhost:8080/test-ui/index.html
 ```
 
-Or double-click the `index.html` file to open it in your default browser.
+- The UI loads test emails from `/data/email_dataset_test.csv` and sends analysis requests to the backend.
+- You can select emails to view model predictions and ground truth labels.
 
-### 3. Test Email Analysis
-
-1. **Enter Email Content**: Paste any email text into the large text area
-2. **Optional Fields**: Add subject line and sender email if desired
-3. **Click "Analyze Email"**: The system will process the text and show results
-
-## Features Tested
-
-The test UI shows results for all core analysis features:
-
-- **😊 Sentiment Analysis**: Positive/Negative/Neutral with confidence scores
-- **🛡️ Spam Detection**: Spam detection with confidence percentage
-- **🏷️ Topic Classification**: Topic identification and keywords
-- **🔧 Text Processing**: Word count, reading level, cleaned text preview
-
-## Sample Test Cases
-
-Try these examples to see different analysis results:
-
-### Positive Email
-```
-Dear [MP Name],
-I want to thank you for your excellent work on the new education bill. The proposed funding increases for our local schools will make a tremendous difference for our children's future. Keep up the great work!
-```
-
-### Negative Email
-```
-I am extremely disappointed with the recent healthcare policy changes. The cuts to rural medical services will devastate our community. This is completely unacceptable and I demand immediate action.
-```
-
-### Potential Spam
-```
-URGENT!!! You have won $1,000,000!!! Click here now to claim your prize!!! Limited time offer!!! Act fast!!!
-```
+## Features
+- **Topic Classification**: Predicts topics for each email
+- **Sentiment Analysis**: VADER-based sentiment prediction
+- **Accuracy Assessment**: Compares predictions to ground truth
 
 ## Troubleshooting
-
-- **"Failed to analyze email"**: Make sure the backend server is running on `http://127.0.0.1:8000`
-- **Empty results**: Check browser console for error messages
-- **Slow analysis**: First analysis may be slower as ML models load into memory
+- If you see "Failed to fetch" or loading errors, ensure both servers are running and you are accessing the UI via `http://localhost:8080` (not as a file).
+- The backend must be running on port 8001.
+- Check the browser console and terminal for error messages.
 
 ## Purpose
-
-This test UI is separate from the main frontend dashboard to allow:
-- Quick testing of analysis functionality
-- Beta testing without complexity
-- Standalone demonstration of core features
-- Development iteration without affecting main UI 
+This test UI is for rapid evaluation of the Parliament Pulse models and is separate from the main dashboard frontend. 

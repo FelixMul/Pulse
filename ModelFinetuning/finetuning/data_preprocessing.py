@@ -21,7 +21,7 @@ from transformers import DistilBertTokenizer
 class EmailDataProcessor:
     """Handles loading and preprocessing of the email dataset for model training."""
     
-    def __init__(self, data_path: str = "../data_creation/emails_data/email_dataset_final.csv"):
+    def __init__(self, data_path: str = "../../data/email_dataset_train.csv"):
         """
         Initialize the data processor.
         

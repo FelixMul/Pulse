@@ -1,6 +1,6 @@
 """
-Configuration settings for Parliament Pulse
-Environment variables and application configuration
+Configuration settings for Parliament Pulse POC
+Simplified configuration for local development
 """
 
 import os
@@ -8,84 +8,50 @@ from typing import List
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables"""
+    """Application settings for the POC"""
     
     # Server Configuration
     HOST: str = Field(default="127.0.0.1", description="Server host")
-    PORT: int = Field(default=8000, description="Server port")
+    PORT: int = Field(default=8080, description="Server port")
     DEBUG: bool = Field(default=True, description="Debug mode")
     ALLOWED_ORIGINS: List[str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:3000"],
+        default=["*"],  # Allow all origins for POC
         description="CORS allowed origins"
     )
     
-    # Frontend Configuration
-    FRONTEND_URL: str = Field(
-        default="http://127.0.0.1:3000",
-        description="Frontend URL for OAuth redirects"
-    )
-    
-    # Database Configuration
-    DATABASE_URL: str = Field(
-        default="sqlite:///./data/emails.db",
-        description="Database connection URL"
-    )
-    
-    # Data Directory for ML models and processed data
+    # Data Directory for local storage
     DATA_DIR: str = Field(
         default="./data",
-        description="Directory for storing data and ML models"
+        description="Directory for storing data and analysis results"
     )
     
-    # Google OAuth Configuration
-    GOOGLE_CLIENT_ID: str = Field(
-        default="",
-        description="Google OAuth client ID"
+    # LLM Configuration
+    OLLAMA_BASE_URL: str = Field(
+        default="http://localhost:11434",
+        description="Ollama server URL"
     )
-    GOOGLE_CLIENT_SECRET: str = Field(
-        default="",
-        description="Google OAuth client secret"
+    LLM_MODEL: str = Field(
+        default="gpt-oss:20b",
+        description="LLM model to use for analysis"
     )
-    GOOGLE_REDIRECT_URI: str = Field(
-        default="http://127.0.0.1:8000/api/auth/callback",
-        description="OAuth redirect URI"
-    )
-    GOOGLE_SCOPES: List[str] = Field(
-        default=[
-            "https://www.googleapis.com/auth/gmail.readonly",
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile"
-        ],
-        description="Google API scopes"
+    LLM_TIMEOUT: int = Field(
+        default=60,
+        description="LLM request timeout in seconds"
     )
     
-    # NLP Configuration
-    NLP_BATCH_SIZE: int = Field(default=50, description="Batch size for NLP processing")
-    TOPIC_MODEL_MIN_DOCS: int = Field(default=5, description="Minimum documents needed for topic modeling")
-    SPAM_CONFIDENCE_THRESHOLD: float = Field(default=0.7, description="Spam detection confidence threshold")
-    
-    # Email Processing Configuration
-    EMAIL_FETCH_LIMIT: int = Field(default=100, description="Maximum emails to fetch per request")
-    EMAIL_PROCESSING_ENABLED: bool = Field(default=True, description="Enable email processing")
+    # Analysis Configuration
+    CONFIDENCE_THRESHOLD: float = Field(
+        default=0.7,
+        description="Minimum confidence threshold for analysis results"
+    )
     
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
         case_sensitive = True
-        extra = "ignore"  # Ignore extra environment variables
-    
-    def validate_oauth_settings(self) -> bool:
-        """Validate that OAuth settings are properly configured"""
-        return bool(
-            self.GOOGLE_CLIENT_ID and 
-            self.GOOGLE_CLIENT_SECRET and 
-            self.GOOGLE_REDIRECT_URI
-        )
-    
-    def validate_database_settings(self) -> bool:
-        """Validate database configuration"""
-        return bool(self.DATABASE_URL)
+        extra = "ignore"
     
     def ensure_data_directory(self) -> bool:
         """Ensure data directory exists"""
@@ -95,6 +61,7 @@ class Settings(BaseSettings):
         except Exception as e:
             print(f"Failed to create data directory: {e}")
             return False
+
 
 # Create global settings instance
 settings = Settings()

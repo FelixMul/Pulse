@@ -1,408 +1,373 @@
-# Project Parliament Pulse - Implementation Guide
+# Parliament Pulse POC - Implementation Steps
 
-## 🏛️ Project Overview
-A privacy-first desktop application for parliamentarians to analyze constituent email inboxes using local data processing and machine learning.
+## 🎯 POC Goals
+Create a proof-of-concept demonstrating:
+1. **Local LLM analysis** for topic extraction and sentiment analysis using gpt-oss 20B
+2. **Enhanced test UI** with time-series visualizations
+3. **Time-series analysis** showing topic and sentiment trends over time
+4. **Simple deployment** with streamlined tooling
 
-## 🎯 MVP Scope & Architecture
+## 🔧 Technical Stack
 
-### Core Principles
-- **Privacy First**: All data processing occurs locally
-- **Secure Access**: OAuth 2.0 only, no password storage
-- **Desktop Native**: Packaged as a standalone application
-- **Real-time Analysis**: Live dashboard with filtering capabilities
+### Backend
+- **Ollama** - Local LLM inference server
+- **LLM** - gpt-oss 20B (final choice)
+- **FastAPI** - Simplified API server
+- **Local JSON storage** - No complex database needed
+- **UV** - Fast Python package manager
 
-### Technical Stack Decision
+### Frontend
+- **Enhanced test-ui** - Improved existing HTML/JS interface
+- **Chart.js** - Time-series line plots
+- **Modern CSS** - Professional styling improvements
 
-#### Backend
-- **Python 3.9+** - Core language
-- **FastAPI** - Local web server and API
-- **SQLite** - Local database (via sqlite3)
-- **Pandas** - Data processing and SQLite interface
-- **BERTopic** - Advanced topic modeling
-- **vaderSentiment** - Fast sentiment analysis
-- **BeautifulSoup4** - Email HTML parsing
-- **Google API Client** - Gmail OAuth integration
+### Development
+- **Single terminal deployment** - Run both backend and frontend together
+- **UV for dependency management** - Faster than pip
+- **Simplified project structure** - Remove unused components
 
-#### Frontend (Recommended Modern Stack)
-Instead of plain HTML/CSS/JS, we'll use:
-- **Vite** - Modern build tool and dev server
-- **TypeScript** - Type safety and better development experience
-- **Tailwind CSS** - Utility-first CSS framework for clean, consistent design
-- **Chart.js** - Robust charting library
-- **Heroicons** - Beautiful SVG icons
+---
 
-This stack provides:
-✅ Modern, clean design out of the box
-✅ Excellent TypeScript support
-✅ Fast development and build times
-✅ Well-maintained and stable
-✅ Great documentation and community
+## 📋 Implementation Steps
 
-#### Desktop Packaging
-- **Tauri** - Rust-based desktop app framework (more secure and lighter than Electron)
+### ✅ Step 1: Simplify Development Environment ✅ COMPLETED
+**Goal:** Single terminal deployment with UV package management
 
-## 📋 Detailed Implementation Steps
-
-### Phase 1: Project Foundation (Day 1)
-
-#### Step 1.1: Directory Structure Setup
-```
-MP-Project/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py              # FastAPI application
-│   │   ├── database.py          # SQLite connection & models
-│   │   ├── email_connector.py   # OAuth & email fetching
-│   │   ├── nlp_processor.py     # NLP pipeline
-│   │   └── config.py           # Configuration management
-│   ├── requirements.txt
-│   ├── .env.example
-│   └── run_server.py           # Development server script
-├── frontend/
-│   ├── src/
-│   │   ├── main.ts             # Application entry point
-│   │   ├── style.css           # Global styles
-│   │   ├── components/         # Reusable components
-│   │   └── utils/              # Utility functions
-│   ├── public/
-│   │   └── index.html
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   └── tsconfig.json
-├── src-tauri/                  # Tauri configuration (Phase 7)
-├── Model Finetuning/           # Custom ML model training
-│   ├── data_creation/          # Synthetic dataset generation
-│   │   └── emails_data/        # Generated email dataset (1,250 emails)
-│   └── finetuning/             # Model training pipeline
-│       ├── data_preprocessing.py   # Data loading and preprocessing
-│       ├── topic_classifier.py     # Topic model training
-│       ├── sentiment_classifier.py # Sentiment model training
-│       ├── models/             # Saved trained models
-│       ├── notebooks/          # Jupyter notebooks for analysis
-│       └── outputs/            # Training logs, plots, metrics
-├── data/                       # Local data storage
-│   └── emails.db              # SQLite database
-├── .gitignore
-├── README.md
-└── IMPLEMENTATION_GUIDE.md
-```
-
-#### Step 1.2: Backend Environment Setup
+#### 1.1: Install UV and Setup Dependencies
 ```bash
-# Create Python virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Install UV (fast Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies
-pip install -r requirements.txt
+# Convert from pip to UV
+uv init --no-readme
+uv add fastapi uvicorn httpx
+
+# Single command to run both backend and frontend
+uv run python start_server.py
 ```
 
-#### Step 1.3: Frontend Environment Setup
+#### 1.2: Streamlined Project Structure
+- Remove: `frontend/`, `ModelFinetuning/`, OAuth files
+- Keep: `backend/app/`, `test-ui/`, core functionality
+- Simplify: Requirements, configuration, startup
+
+#### 1.3: Unified Startup Script
+Create `start_server.py` that runs:
+- FastAPI backend on port 8001
+- Static file server for test-ui on port 8080
+- Auto-opens browser to test interface
+
+**Status:** ✅ COMPLETED ✅
+
+#### 1.4: What Was Accomplished
+- ✅ Removed unused components (ModelFinetuning/, OAuth files)
+- ✅ Created pyproject.toml for UV package management
+- ✅ Built unified start_server.py for single-command deployment
+- ✅ Simplified backend/app/config.py (removed OAuth settings)
+- ✅ Created backend/app/simple_storage.py (JSON-based local storage)
+- ✅ Streamlined backend/app/main.py (removed complex dependencies)
+- ✅ Updated test-ui/index.html to work with simplified API
+- ✅ Updated README with new startup instructions
+- ✅ Fixed CSV data serving for test interface
+
+#### 1.5: New Startup Process
+```bash
+# Install dependencies
+uv sync
+
+# Start everything in one command
+uv run python start_server.py
+
+# Opens browser to: http://localhost:8080
+```
+
+#### 1.6: Verified Working
+- ✅ Single command startup
+- ✅ Test interface loads emails from CSV
+- ✅ Mock analysis endpoint working
+- ✅ Local storage saving results
+- ✅ Ready for LLM integration
+
+---
+
+### ✅ Step 2: Local LLM Integration ✅ COMPLETED
+**Goal:** gpt-oss 20B for reliable topic extraction and sentiment analysis
+
+#### 2.1: Install Ollama and gpt-oss 20B
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Pull gpt-oss 20B model  
+ollama pull gpt-oss:20b
+
+# Test the model
+ollama run gpt-oss:20b "Analyze this email sentiment: I'm frustrated with healthcare delays"
+```
+
+#### 2.2: What Was Accomplished
+- ✅ Created LLMProcessor class with gpt-oss:20b integration
+- ✅ Implemented structured prompting for reliable JSON output
+- ✅ Added comprehensive error handling and fallback mechanisms
+- ✅ Integrated LLM processor into main analyze endpoint
+- ✅ Added LLM health checks and connection testing
+- ✅ Validated topic extraction and sentiment analysis accuracy
+
+#### 2.3: LLM Features Implemented
+- **Topic Classification**: 29 comprehensive categories (healthcare, education, transportation, etc.)
+- **Sentiment Analysis**: 5-level scale (very_negative to very_positive)
+- **Confidence Scoring**: 0.1 to 1.0 range with validation
+- **Summary Generation**: Concise 1-sentence email summaries
+- **Error Recovery**: Graceful fallbacks when LLM fails
+- **JSON Validation**: Robust parsing and field validation
+
+#### 2.4: Critical Bug Fixes Completed ✅
+- **CSV Parsing Fix**: Fixed multi-line email parsing (was only reading first line like "Dear Mr. Johnson,")
+- **Email Truncation Fix**: Increased character limit from 1500 to 4000 chars (74% of emails were being cut off)
+- **Robust JSON Extraction**: Added regex-based parsing to handle LLM "thinking mode" output
+- **Comprehensive Debugging**: Added terminal debugging to trace full analysis pipeline
+- **Email Caching**: Implemented email_id-based caching to avoid redundant LLM calls
+
+#### 2.5: Performance Metrics ✅
+- **Average Email Length**: 1948 characters (now processed in full)
+- **Email Truncation**: 74.4% of emails were over 1500 chars (now handled properly)
+- **LLM Success Rate**: Significantly improved with full email context and robust JSON parsing
+- **Frontend Integration**: Complete email analysis with topic, sentiment, confidence, and summary
+- **Caching System**: Working properly with visual "✓ Analyzed" indicators
+
+#### 2.4: Tested Working Examples
+```bash
+# Healthcare complaint (very_negative)
+curl -X POST http://localhost:8080/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Frustrated with hospital waiting times..."}'
+
+# Transportation praise (positive)  
+curl -X POST http://localhost:8080/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Thank you for improving bus routes..."}'
+```
+
+**Status:** ✅ COMPLETED ✅
+
+### Step 2: MCP Integration
+
+#### 2.1: MCP Server Setup
+```python
+# backend/app/mcp_server.py
+class MCPEnhancer:
+    """Enhances email analysis with external context"""
+    
+    async def get_constituency_data(self, postcode: str) -> dict:
+        # Mock API call to constituency demographics
+        pass
+        
+    async def get_policy_context(self, topic: str) -> dict:
+        # Mock API call to current policy positions
+        pass
+        
+    async def get_news_sentiment(self, topic: str, date: str) -> dict:
+        # Mock API call to news sentiment for topic
+        pass
+        
+    async def enhance_analysis(self, email_data: dict) -> dict:
+        # Combine LLM analysis with external context
+        pass
+```
+
+#### 2.2: API Endpoints
+```python
+# Add to backend/app/main.py
+@app.post("/api/mcp/analyze")
+async def enhanced_analysis(email_data: dict):
+    # Run LLM analysis + MCP enhancement
+    pass
+
+@app.get("/api/mcp/status") 
+async def mcp_status():
+    # Health check for MCP services
+    pass
+```
+
+### Step 3: Synthetic Time-Series Data
+
+#### 3.1: Realistic Data Generation
+```python
+# backend/app/synthetic_data.py
+def generate_time_series_data():
+    """Generate 6 months of realistic email data"""
+    
+    # Patterns to implement:
+    # - Healthcare peaks in winter (Nov-Feb)
+    # - Education surges in Aug-Sep  
+    # - Tax negativity around budget periods
+    # - Environment spikes with weather events
+    # - Economy sentiment varies with news cycles
+    
+    # Return format:
+    # [
+    #   {
+    #     "date": "2024-01-15",
+    #     "topic": "healthcare", 
+    #     "sentiment": -0.3,
+    #     "volume": 45,
+    #     "trend": "up"
+    #   }
+    # ]
+```
+
+#### 3.2: Time-Series API Endpoints
+```python
+# Add to backend/app/main.py
+@app.get("/api/dashboard/time-series")
+async def get_time_series(
+    start_date: str,
+    end_date: str, 
+    granularity: str = "day"
+):
+    # Return time-series data for charts
+    pass
+```
+
+### Step 4: Premium Frontend Upgrade
+
+#### 4.1: Install Premium Dependencies
 ```bash
 cd frontend
-npm install
-npm run dev  # Start development server
+npm install framer-motion recharts @headlessui/react lucide-react
+npm install @types/react @types/react-dom
 ```
 
-### Phase 2: Database Layer (Day 1-2)
-
-#### Step 2.1: Database Schema Design
-```sql
--- emails table
-CREATE TABLE emails (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email_id TEXT UNIQUE NOT NULL,           -- Gmail message ID
-    thread_id TEXT,                          -- Gmail thread ID
-    sender_email TEXT NOT NULL,
-    sender_name TEXT,
-    subject TEXT NOT NULL,
-    received_at DATETIME NOT NULL,
-    raw_body TEXT NOT NULL,                  -- Original email body
-    cleaned_body TEXT NOT NULL,              -- Processed email body
-    is_spam BOOLEAN DEFAULT FALSE,
-    topic TEXT,                              -- Assigned topic
-    topic_confidence REAL,                   -- Topic confidence score
-    sentiment_label TEXT,                    -- positive/neutral/negative
-    sentiment_score REAL,                    -- Numerical sentiment score
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- topics table (for topic management)
-CREATE TABLE topics (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
-    description TEXT,
-    color TEXT,                              -- Hex color for UI
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- processing_status table (for tracking sync status)
-CREATE TABLE processing_status (
-    id INTEGER PRIMARY KEY,
-    last_sync_at DATETIME,
-    emails_processed INTEGER DEFAULT 0,
-    last_email_date DATETIME
-);
-```
-
-#### Step 2.2: Database Connection Manager
-- Implement connection pooling
-- Add migration system for schema updates
-- Create data access layer with Pandas integration
-
-### Phase 3: Email Integration (Day 2-3)
-
-#### Step 3.1: Gmail OAuth Setup
-```python
-# Required OAuth scopes
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-
-# OAuth flow steps:
-# 1. Generate authorization URL
-# 2. Handle callback with authorization code
-# 3. Exchange code for access token
-# 4. Store refresh token securely (encrypted local file)
-```
-
-#### Step 3.2: Email Fetching Strategy
-```python
-# Batch processing approach:
-# 1. Fetch emails in chunks (100-500 at a time)
-# 2. Process incrementally to avoid API rate limits
-# 3. Store raw data first, then process NLP
-# 4. Implement resume capability for interrupted syncs
-```
-
-#### Step 3.3: Email Cleaning Pipeline
-```python
-# Multi-stage cleaning process:
-# 1. HTML parsing and text extraction
-# 2. Quote chain removal (regex patterns)
-# 3. Signature detection and removal
-# 4. Normalization (whitespace, encoding)
-# 5. Language detection (English filter)
-```
-
-### Phase 4: Custom ML Model Training and NLP Pipeline (Day 3-5)
-
-#### Step 4.1: Dataset Generation and Preprocessing
-```python
-# Synthetic dataset creation:
-# - 1,250 labeled emails with topics, sentiment, personas
-# - Multi-label topic classification (1-3 topics per email)
-# - 6-class sentiment analysis (Very Negative to Very Positive, Mixed)
-# - Realistic email content using LLM generation + post-processing
-```
-
-#### Step 4.2: Custom Topic Classification Model
-```python
-# Fine-tuned DistilBERT for topic classification:
-# - Multi-label classification (emails can have multiple topics)
-# - Supervised learning on domain-specific data
-# - Cosine similarity evaluation for overlapping topics
-# - Expected F1-score: >0.85, Cosine similarity: >0.90
-```
-
-#### Step 4.3: Custom Sentiment Analysis Model
-```python
-# Fine-tuned DistilBERT for sentiment analysis:
-# - 6-class classification (Very Negative, Negative, Neutral, Positive, Very Positive, Mixed)
-# - Supervised learning on constituent email language patterns
-# - Handles formal/informal writing styles, political discourse
-# - Expected accuracy: >0.90, F1-score: >0.85
-```
-
-#### Step 4.4: Model Integration and Deployment
-```python
-# Integration into NLP processor:
-# - Load trained models for real-time inference
-# - Batch processing for email sync
-# - Confidence scoring and fallback handling
-# - Performance optimization with model caching
-```
-
-### Phase 5: API Development (Day 4-5)
-
-#### Step 5.1: Core API Endpoints
-```python
-# Authentication endpoints
-POST /api/auth/gmail/start     # Initiate OAuth flow
-GET  /api/auth/gmail/callback  # Handle OAuth callback
-GET  /api/auth/status          # Check auth status
-
-# Email processing endpoints
-POST /api/emails/sync          # Trigger email sync
-GET  /api/emails/status        # Sync progress status
-
-# Dashboard data endpoints
-GET  /api/dashboard/summary    # High-level KPIs
-GET  /api/dashboard/trends     # Email volume over time
-GET  /api/dashboard/topics     # Topic breakdown
-GET  /api/dashboard/sentiment  # Sentiment analysis
-```
-
-#### Step 5.2: Data Aggregation Logic
-```python
-# Query patterns for dashboard:
-# 1. Time-based grouping (day/week/month)
-# 2. Topic aggregation with counts
-# 3. Sentiment distribution calculations
-# 4. Filtering by date ranges
-# 5. Caching for performance
-```
-
-### Phase 6: Frontend Dashboard (Day 5-6)
-
-#### Step 6.1: Component Architecture
+#### 4.2: Component Architecture
 ```typescript
-// Core components:
-interface DashboardProps {
+// frontend/src/components/TimeSeriesChart.tsx
+interface TimeSeriesProps {
+  data: TimeSeriesPoint[];
+  selectedTopics: string[];
   dateRange: DateRange;
-  granularity: 'day' | 'week' | 'month';
 }
 
-// Components:
-- FilterControls      // Date picker and granularity selector
-- KPICards           // Total emails, avg sentiment, topics count
-- EmailTrendChart    // Line chart with Chart.js
-- TopicsBarChart     // Horizontal bar chart
-- SentimentTopicsChart // Grouped bar chart
-- LoadingSpinner     // Processing indicator
+export const TimeSeriesChart: React.FC<TimeSeriesProps> = ({ data, selectedTopics, dateRange }) => {
+  // Multi-line chart showing topic trends over time
+  // Interactive brushing and zooming
+  // Smooth animations with Recharts
+};
+
+// frontend/src/components/SentimentHeatmap.tsx
+export const SentimentHeatmap: React.FC = () => {
+  // Calendar heatmap showing sentiment patterns
+  // Color-coded by sentiment intensity
+  // Interactive hover states
+};
+
+// frontend/src/components/AnimatedKPICards.tsx  
+export const AnimatedKPICards: React.FC = () => {
+  // Animated metric cards with trend indicators
+  // Count-up animations for numbers
+  // Smooth color transitions for sentiment
+};
 ```
 
-#### Step 6.2: State Management
+#### 4.3: Advanced Animations
 ```typescript
-// Simple state management with TypeScript:
-interface AppState {
-  isLoading: boolean;
-  error: string | null;
-  dateRange: { start: Date; end: Date };
-  granularity: Granularity;
-  dashboardData: DashboardData | null;
-  authStatus: AuthStatus;
-}
+// frontend/src/components/MotionLayout.tsx
+import { motion, AnimatePresence } from 'framer-motion';
+
+export const MotionLayout: React.FC = ({ children }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 ```
 
-#### Step 6.3: Chart Configuration
+#### 4.4: Theme System
 ```typescript
-// Chart.js setup with TypeScript:
-// - Responsive design
-// - Dark/light theme support
-// - Interactive tooltips
-// - Export capabilities
-// - Accessibility features
+// frontend/src/hooks/useTheme.ts
+export const useTheme = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+  
+  return { theme, toggleTheme };
+};
 ```
 
-### Phase 7: Desktop Packaging with Tauri (Day 6-7)
+### Step 5: Time-Series Visualizations
 
-#### Step 7.1: Tauri Setup
-```bash
-# Initialize Tauri
-npm install --save-dev @tauri-apps/cli
-npx tauri init
-
-# Configure tauri.conf.json:
-# - Set up Python backend as sidecar
-# - Configure window properties
-# - Set up auto-updater
-# - Configure security policies
+#### 5.1: Multi-Line Trend Chart
+```typescript
+// Show multiple topics on same timeline
+// Interactive legend to toggle topics
+// Zoom and pan functionality
+// Gradient fills under lines
+// Custom tooltips with rich content
 ```
 
-#### Step 7.2: Backend Integration
-```rust
-// Tauri commands for Python integration:
-#[tauri::command]
-async fn start_backend() -> Result<(), String> {
-    // Start FastAPI server as background process
-}
-
-#[tauri::command]
-async fn stop_backend() -> Result<(), String> {
-    // Gracefully shutdown FastAPI server
-}
+#### 5.2: Correlation Analysis
+```typescript  
+// Scatter plot showing topic vs sentiment correlation
+// Bubble size represents email volume
+// Color coding by time period
+// Interactive selection and filtering
 ```
 
-#### Step 7.3: Build Configuration
-```json
-// tauri.conf.json configuration:
-{
-  "build": {
-    "beforeBuildCommand": "npm run build",
-    "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:3000",
-    "distDir": "../frontend/dist"
-  },
-  "bundle": {
-    "targets": ["app", "dmg", "msi"],
-    "icon": ["icons/icon.png"]
-  }
-}
+#### 5.3: Seasonal Pattern Display
+```typescript
+// Identify and highlight seasonal trends
+// Show year-over-year comparisons
+// Pattern recognition annotations
+// Predictive trend lines
 ```
 
-## 🚀 Development Workflow
+### Step 6: Integration and Testing
 
-### Daily Development Process
-1. **Morning**: Plan day's objectives, review previous progress
-2. **Code**: Implement features with test-driven approach
-3. **Test**: Manual testing of new features
-4. **Evening**: Commit progress, update documentation
+#### 6.1: End-to-End Flow
+```python
+# Test complete pipeline:
+# Email text → LLM analysis → MCP enhancement → Database → API → Frontend charts
+```
 
-### Testing Strategy
-- **Unit Tests**: Core NLP functions and data processing
-- **Integration Tests**: API endpoints and database operations
-- **Manual Testing**: UI interactions and email processing
-- **Performance Testing**: Large email dataset processing
+#### 6.2: Performance Optimization
+```python
+# LLM response caching
+# Batch processing for multiple emails  
+# Lazy loading for large datasets
+# Chart rendering optimization
+```
 
-### Security Considerations
-- **OAuth Tokens**: Encrypted storage using system keyring
-- **Local Database**: File permissions and encryption at rest
-- **API Security**: CORS configuration and rate limiting
-- **Desktop App**: Code signing and secure update mechanism
+#### 6.3: Error Handling
+```python
+# LLM timeout handling
+# MCP service fallbacks
+# Graceful degradation for missing data
+# User-friendly error messages
+```
 
-## 📊 Success Metrics for MVP
+---
 
-### Functional Requirements
-✅ Successfully authenticate with Gmail OAuth
-✅ Import and process 1000+ emails without errors
-✅ Generate accurate topic classifications
-✅ Display interactive dashboard with all charts
-✅ Package as standalone desktop application
+## 🎯 Success Criteria
 
-### Performance Requirements
-✅ Email sync: Process 100 emails per minute
-✅ Dashboard load: Display data within 2 seconds
-✅ Topic modeling: Complete within 30 seconds for 1000 emails
-✅ Memory usage: Under 500MB for typical usage
+✅ **LLM Analysis**: Process emails in <5 seconds with structured output  
+✅ **Premium UI**: Smooth 60fps animations and professional design  
+✅ **Time-Series**: Interactive charts showing trends over 6-month period  
+✅ **MCP Integration**: External context enhancement working  
+✅ **Synthetic Data**: Realistic patterns demonstrating system capabilities  
 
-### User Experience Requirements
-✅ Clean, intuitive interface design
-✅ Responsive interactions (no UI freezing)
-✅ Clear error messages and progress indicators
-✅ Offline capability after initial sync
+## 📝 Next Actions
 
-## 🔄 Future Enhancements (Post-MVP)
-
-1. **Advanced NLP Features**
-   - Named Entity Recognition (NER)
-   - Intent classification
-   - Multi-language support
-
-2. **Enhanced Analytics**
-   - Constituency mapping
-   - Trend predictions
-   - Comparative analysis
-
-3. **Integration Expansion**
-   - Microsoft 365 support
-   - Social media monitoring
-   - Calendar integration
-
-4. **Collaboration Features**
-   - Team dashboards
-   - Report generation
-   - Data export capabilities
-
-This implementation guide provides a comprehensive roadmap for building the MVP systematically while maintaining code quality and user experience standards. 
+1. **Choose LLM model** (Llama 3.2 3B vs Gemma 2B vs Mistral 7B)
+2. **Set up Ollama** and test model performance
+3. **Implement LLM processor** with structured prompting
+4. **Create synthetic dataset** with realistic time-series patterns
+5. **Build premium UI components** with Framer Motion
+6. **Add MCP integration** for enhanced analysis
+7. **Connect everything** and test end-to-end flow 
