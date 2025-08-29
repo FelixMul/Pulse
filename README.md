@@ -1,51 +1,36 @@
-#  Pulse
+# 🏛️ Parliament Pulse - Local Email Analysis POC
 
-**Privacy-first email analysis for parliamentarians**
+A proof-of-concept system for analyzing constituent emails using local LLM processing. Built for parliamentarians to understand constituent concerns without external data processing.
 
-A desktop application that helps parliamentarians analyze their constituent email inbox using local data processing and machine learning. All data remains on your local machine for maximum privacy and security.
-
-## Features
-
-- **Secure Email Integration**: OAuth 2.0 authentication with Gmail (no password storage)
-- **Privacy-First**: All processing happens locally on your machine
-- **NLP Analysis**: Topic modeling, sentiment analysis, and spam filtering
-- **Interactive Dashboard**: Real-time analytics with beautiful charts
-- **Desktop App**: Standalone application for macOS and Windows
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - **Python 3.9+**
 - **UV package manager** (fast pip replacement)
 - **Ollama** (for local LLM)
 
 ### 1. Install UV
-
 ```bash
 # Install UV (fast Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ### 2. Install Dependencies
-
 ```bash
 # Install project dependencies
 uv sync
 ```
 
-### 3. Setup Local LLM (Optional for Step 1)
-
+### 3. Setup Local LLM
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Pull gpt-oss 20B model (will be used in Step 2)
+# Pull gpt-oss 20B model
 ollama pull gpt-oss:20b
 ```
 
 ### 4. Start the Application
-
 ```bash
 # Single command to start everything
 uv run python start_server.py
@@ -58,152 +43,120 @@ This will:
 
 **That's it!** The application will be running with a unified interface.
 
-## Dashboard Features
+## 🎯 What This POC Does
 
-### High-Level KPIs
-- Total email count for selected period
-- Average sentiment score
-- Number of unique topics identified
+### Core Features
+- **Local Email Analysis**: Uses gpt-oss 20B via Ollama for topic extraction and sentiment analysis
+- **No External APIs**: All processing happens on your machine
+- **Comprehensive Classification**: 29 topic categories covering UK political issues
+- **Sentiment Analysis**: 5-level scale (very negative to very positive)
+- **Smart Caching**: Avoids re-analyzing the same emails
+- **Test Interface**: Simple web UI for testing and demonstration
 
-### Interactive Charts
-- **Email Volume Trend**: Line chart showing email volume over time
-- **Top Topics**: Bar chart of most discussed topics
-- **Sentiment by Topic**: Grouped bar chart showing sentiment distribution per topic
+### Technical Stack
+- **Backend**: FastAPI with local JSON storage
+- **LLM**: gpt-oss 20B running locally via Ollama
+- **Frontend**: Simple HTML/JS test interface
+- **Storage**: Local JSON files (no database required)
+- **Package Management**: UV for fast dependency management
 
-### Filtering Options
-- Date range picker
-- Time granularity (day/week/month)
-- Real-time data refresh
+## 📊 Current Capabilities
 
-## Development
+### Email Analysis
+- **Topic Classification**: Automatically categorizes emails into 29 political themes
+- **Sentiment Scoring**: Determines constituent satisfaction level
+- **Confidence Metrics**: Shows how certain the AI is about its analysis
+- **Summary Generation**: Creates concise summaries of email content
 
-### Project Structure
+### Sample Topics
+- Healthcare & NHS
+- Housing & Planning  
+- Immigration & Asylum
+- Education & Schools
+- Cost of Living & Economy
+- Social Security & Benefits
+- Transportation & Infrastructure
+- Environment & Climate
+- Local Campaign Support
+- And 20 more categories...
+
+### Sample Sentiments
+- Very Negative
+- Negative  
+- Neutral
+- Positive
+- Very Positive
+
+## 🔧 Development Status
+
+### ✅ Completed
+- **Step 1**: Unified development environment with single startup command
+- **Step 2**: Local LLM integration with gpt-oss 20B
+  - Fixed critical CSV parsing issues (was truncating emails)
+  - Implemented robust JSON parsing for LLM output
+  - Added comprehensive debugging and error handling
+  - Built email caching system
+
+### 🔄 Next Steps
+- **Step 3**: Generate synthetic time-series email dataset
+- **Step 4**: Add time-series visualization to frontend
+- **Step 5**: MCP integration (low priority)
+
+## 📁 Project Structure
 
 ```
 MP-Project/
-├── backend/                 # Python FastAPI backend
+├── backend/                 # FastAPI backend
 │   ├── app/
-│   │   ├── main.py         # FastAPI application
-│   │   ├── database.py     # SQLite database management
-│   │   ├── config.py       # Configuration settings
-│   │   ├── email_connector.py    # Gmail OAuth integration
-│   │   └── nlp_processor.py      # NLP processing pipeline
-│   └── requirements.txt    # Python dependencies
-├── frontend/               # Vite + TypeScript frontend
-│   ├── src/
-│   │   ├── main.ts        # Application entry point
-│   │   └── style.css      # Tailwind CSS styles
-│   ├── public/
-│   │   └── index.html     # Main HTML file
-│   └── package.json       # Node.js dependencies
-├── data/                  # Local SQLite database
-└── IMPLEMENTATION_GUIDE.md # Detailed development guide
+│   │   ├── main.py         # API endpoints
+│   │   ├── llm_processor.py # gpt-oss 20B integration
+│   │   ├── simple_storage.py # Local JSON storage
+│   │   └── config.py       # Configuration
+├── test-ui/                 # Simple test interface
+│   └── index.html          # Frontend for testing
+├── data/                    # Email datasets and analysis results
+├── start_server.py          # Unified startup script
+└── pyproject.toml          # UV dependencies
 ```
 
-### Technology Stack
+## 🧪 Testing the System
 
-**Backend:**
-- FastAPI (Python web framework)
-- SQLite (local database)
-- Fine-tuned DistilBERT (custom topic classification)
-- custom sentiment analysis -> not yet decided
-- HuggingFace Transformers (model framework)
-- Google API Client (Gmail integration)
+1. **Start the server**: `uv run python start_server.py`
+2. **Open browser**: Navigate to http://localhost:8080
+3. **Load test emails**: Click "Load Test Emails" to load 250 sample emails
+4. **Analyze emails**: Click on any email to run LLM analysis
+5. **View results**: See topic, sentiment, confidence, and summary
 
-**Frontend:**
-- Vite (build tool)
-- TypeScript (type safety)
-- Tailwind CSS (styling)
-- Chart.js (data visualization)
+## 🔍 Debugging
 
-**Desktop Packaging:**
-- Tauri (Rust-based app framework)
+The system includes comprehensive debugging:
+- **Terminal output**: Shows full LLM responses and processing steps
+- **Email content**: Displays actual content being sent to LLM
+- **Analysis pipeline**: Traces each step of the analysis process
 
-### Development Workflow
+## 📈 Performance
 
-1. **Backend Development**: Start with `python backend/run_server.py`
-2. **Frontend Development**: Start with `npm run dev` in frontend directory
-3. **API Documentation**: Visit http://127.0.0.1:8000/docs when backend is running
-4. **Type Checking**: Run `npm run type-check` in frontend directory
+- **Email Processing**: Handles emails up to 4000 characters (was 1500)
+- **Analysis Speed**: ~10-15 seconds per email with gpt-oss 20B
+- **Cache Efficiency**: Avoids redundant analysis with email ID tracking
+- **Success Rate**: Significantly improved with full email context
 
-## 🔒 Privacy & Security
+## 🚧 Limitations (POC Version)
 
-- **Local Processing**: All email data and NLP processing stays on your machine
-- **OAuth 2.0**: Secure authentication without password storage
-- **Encrypted Storage**: Tokens stored securely using system keyring
-- **No External APIs**: No data sent to third-party services for analysis
+- **Simple UI**: Basic test interface (will be improved in Step 4)
+- **Local Only**: Requires Ollama and gpt-oss 20B locally
+- **No Authentication**: Basic security (suitable for development)
+- **Limited Dataset**: Currently 250 test emails (will expand in Step 3)
 
-## Current Status
+## 🤝 Contributing
 
-✅ **Step 1**: Simplified development environment with unified startup  
-✅ **Step 2**: Local LLM integration with gpt-oss 20B for email analysis  
-🔄 **Step 3**: Generate synthetic time-series email dataset (Next)  
-📋 **Step 4**: Add time-series visualization to frontend  
-📋 **Step 5**: MCP integration (low priority)
-
-###  Recent Progress: Custom ML Models
-
- **Synthetic Dataset**: Generated 1,250 labeled emails with topics, sentiment, and personas  
- **Model Training Pipeline**: DistilBERT fine-tuning framework for topic and sentiment classification  
- **Model Training**: In progress - training custom models on domain-specific data  
- **Model Integration**: Integrate trained models into backend NLP processor  
-
-See [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) for detailed development roadmap.
-
-## ⚠️ Model Limitation: 512-Token Input Truncation
-
-**Important:** DistilBERT (and BERT) models have a maximum input length of 512 tokens. Our analysis shows that the average email in the dataset is about 500 tokens, meaning many emails are truncated during training and inference. This can result in loss of important information, especially for longer emails.
-
-### Potential Problems
-- The end of longer emails is cut off, possibly omitting key context or requests.
-- Model performance may be reduced for emails where critical information is not in the first 512 tokens.
-
-### Possible Solutions
-- **Chunking:** Split long emails into multiple 512-token segments, run the model on each, and aggregate predictions (e.g., majority vote, max confidence).
-- **Summarization:** Preprocess long emails with an automatic summarizer to fit within the token limit.
-- **Prioritize Sections:** Use only the most relevant part of the email (e.g., introduction and conclusion) if domain knowledge allows.
-
-> **Note:** The current implementation uses truncation, so only the first 512 tokens of each email are used by the model.
-
-##  Contributing
-
-This is a collaborative development project. Each phase builds upon the previous one with careful attention to:
-
-- **Privacy by design**
-- **Local-first architecture**
-- **Type safety and error handling**
-- **Clean, maintainable code**
-- **Comprehensive testing**
+This is a proof-of-concept project. The focus is on demonstrating local LLM capabilities for political email analysis.
 
 ## 📄 License
 
-This project is private and proprietary. All rights reserved.
+Project-specific license - see project documentation for details.
 
 ---
 
-**Parliament Pulse** - Empowering parliamentarians with privacy-first email analytics
-
----
-
-## Test UI: Quick Start Guide
-
-To run the test UI and backend for model testing:
-
-1. **Start the backend inference server:**
-   ```bash
-   python test-ui/inference_server.py
-   ```
-   This will start the backend at http://localhost:8080
-
-2. **Start a static server for the frontend (from the project root):**
-   ```bash
-   python3 -m http.server 8080
-   ```
-   This will serve your files at http://localhost:8080
-
-3. **Open the test UI in your browser:**
-   [http://localhost:8080/test-ui/index.html](http://localhost:8080/test-ui/index.html)
-
-- The UI will now be able to communicate with the backend for predictions and analysis.
-- If you see any errors, ensure both servers are running and check your browser console for details.
+**Built for parliamentarians who need local, private email analysis without external dependencies.**
 
