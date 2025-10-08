@@ -1,162 +1,106 @@
-# 🏛️ Parliament Pulse - Local Email Analysis POC
+# Parliament Pulse – Local Streamlit POC
 
-A proof-of-concept system for analyzing constituent emails using local LLM processing. Built for parliamentarians to understand constituent concerns without external data processing.
+A Streamlit-only proof of concept demonstrating how locally run LLMs can analyze incoming constituent emails (topics and sentiment) and provide lightweight analytics for political representatives. No external APIs are used; models run on your machine via Ollama.
 
-## 🚀 Quick Start
+## What this does
 
-### Prerequisites
-- **Python 3.9+**
-- **UV package manager** (fast pip replacement)
-- **Ollama** (for local LLM)
+- Local email analysis using one of two models:
+  - gpt-oss:20b ("big")
+  - llama3.1:8b-instruct ("small")
+- Predictions: topic, sentiment, confidence, and a short summary per email
+- Evaluation UI:
+  - Browse tab: Outlook-style email list (left) + selected email with predictions (right). Hover to see true labels vs predictions.
+  - Aggregates tab: interactive topic distribution (pie) and sentiment distribution (bar), with option to show true labels.
+- Precompute pipeline for efficiency: batch-run a model over the dataset once, save results, and visualize quickly in the UI.
 
-### 1. Install UV
+## Why local
+
+- Privacy-first: emails never leave the machine
+- Cost/predictability: no API bills, repeatable evaluation
+
+## Requirements
+
+- Python 3.9+
+- UV package manager
+- Ollama installed and running
+
+## Setup
+
 ```bash
-# Install UV (fast Python package manager)
+# 1) Install UV (if not installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
 
-### 2. Install Dependencies
-```bash
-# Install project dependencies
+# 2) Install project deps
 uv sync
-```
 
-### 3. Setup Local LLM
-```bash
-# Install Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Pull gpt-oss 20B model
+# 3) Pull models for Ollama
 ollama pull gpt-oss:20b
+ollama pull llama3.1:8b-instruct
 ```
 
-### 4. Start the Application
+## Precompute predictions (recommended)
+
+The evaluator reads the dataset and writes predictions to `data/predictions_{small|big}.csv`. It resumes by default (skips already-processed rows) and shows a compact progress bar.
+
 ```bash
-# Single command to start everything
-uv run python start_server.py
+# Small model (llama 8B)
+uv run python evaluate_emails.py --model small
+
+# Big model (gpt-oss 20B)
+uv run python evaluate_emails.py --model big
+
+# Options:
+#   --overwrite  	Recompute all rows
+#   --limit N    	Process first N rows (for quick tests)
+#   --verbose    	Print detailed logs instead of a progress bar
 ```
 
-This will:
-- Start the backend API on port 8080
-- Serve the test UI at the same address
-- Automatically open your browser to http://localhost:8080
+Inputs and outputs:
 
-**That's it!** The application will be running with a unified interface.
+- Input dataset: `ModelFinetuning/data_creation/emails_data/email_dataset_final.csv`
+- Outputs:
+  - `data/predictions_small.csv` (llama3.1:8b-instruct)
+  - `data/predictions_big.csv` (gpt-oss:20b)
 
-## 🎯 What This POC Does
+## Run the Streamlit UI
 
-### Core Features
-- **Local Email Analysis**: Uses gpt-oss 20B via Ollama for topic extraction and sentiment analysis
-- **No External APIs**: All processing happens on your machine
-- **Comprehensive Classification**: 29 topic categories covering UK political issues
-- **Sentiment Analysis**: 5-level scale (very negative to very positive)
-- **Smart Caching**: Avoids re-analyzing the same emails
-- **Test Interface**: Simple web UI for testing and demonstration
-
-### Technical Stack
-- **Backend**: FastAPI with local JSON storage
-- **LLM**: gpt-oss 20B running locally via Ollama
-- **Frontend**: Simple HTML/JS test interface
-- **Storage**: Local JSON files (no database required)
-- **Package Management**: UV for fast dependency management
-
-## 📊 Current Capabilities
-
-### Email Analysis
-- **Topic Classification**: Automatically categorizes emails into 29 political themes
-- **Sentiment Scoring**: Determines constituent satisfaction level
-- **Confidence Metrics**: Shows how certain the AI is about its analysis
-- **Summary Generation**: Creates concise summaries of email content
-
-### Sample Topics
-- Healthcare & NHS
-- Housing & Planning  
-- Immigration & Asylum
-- Education & Schools
-- Cost of Living & Economy
-- Social Security & Benefits
-- Transportation & Infrastructure
-- Environment & Climate
-- Local Campaign Support
-- And 20 more categories...
-
-### Sample Sentiments
-- Very Negative
-- Negative  
-- Neutral
-- Positive
-- Very Positive
-
-## 🔧 Development Status
-
-### ✅ Completed
-- **Step 1**: Unified development environment with single startup command
-- **Step 2**: Local LLM integration with gpt-oss 20B
-  - Fixed critical CSV parsing issues (was truncating emails)
-  - Implemented robust JSON parsing for LLM output
-  - Added comprehensive debugging and error handling
-  - Built email caching system
-
-### 🔄 Next Steps
-- **Step 3**: Generate synthetic time-series email dataset
-- **Step 4**: Add time-series visualization to frontend
-- **Step 5**: MCP integration (low priority)
-
-## 📁 Project Structure
-
-```
-MP-Project/
-├── backend/                 # FastAPI backend
-│   ├── app/
-│   │   ├── main.py         # API endpoints
-│   │   ├── llm_processor.py # gpt-oss 20B integration
-│   │   ├── simple_storage.py # Local JSON storage
-│   │   └── config.py       # Configuration
-├── test-ui/                 # Simple test interface
-│   └── index.html          # Frontend for testing
-├── data/                    # Email datasets and analysis results
-├── start_server.py          # Unified startup script
-└── pyproject.toml          # UV dependencies
+```bash
+uv run streamlit run app.py
 ```
 
-## 🧪 Testing the System
+### Using the UI
 
-1. **Start the server**: `uv run python start_server.py`
-2. **Open browser**: Navigate to http://localhost:8080
-3. **Load test emails**: Click "Load Test Emails" to load 250 sample emails
-4. **Analyze emails**: Click on any email to run LLM analysis
-5. **View results**: See topic, sentiment, confidence, and summary
+- Select model (small/big) from the sidebar.
+- Browse tab: click any email card on the left to see the full email and predictions on the right.
+  - Prediction badges show a check or cross; hover to see true labels when mismatched.
+- Aggregates tab: topic pie and sentiment bars; toggle to show true labels.
 
-## 🔍 Debugging
+## Architecture (current)
 
-The system includes comprehensive debugging:
-- **Terminal output**: Shows full LLM responses and processing steps
-- **Email content**: Displays actual content being sent to LLM
-- **Analysis pipeline**: Traces each step of the analysis process
+- Frontend: Streamlit app (`app.py`) – no separate backend/API.
+- Batch evaluation: `evaluate_emails.py` calls Ollama through a local client (`backend/app/llm_processor.py`) and writes CSV outputs.
+- Models: selected per run (small/big) and checked for availability via Ollama.
 
-## 📈 Performance
+## Notes & limits
 
-- **Email Processing**: Handles emails up to 4000 characters (was 1500)
-- **Analysis Speed**: ~10-15 seconds per email with gpt-oss 20B
-- **Cache Efficiency**: Avoids redundant analysis with email ID tracking
-- **Success Rate**: Significantly improved with full email context
+- Running gpt-oss:20b locally is resource-intensive; consider starting with the small model.
+- The dataset’s topics column is a stringified list; the app parses it for comparison and charting.
+- If you change the dataset, rerun the evaluator to refresh predictions.
 
-## 🚧 Limitations (POC Version)
+## Project structure (relevant parts)
 
-- **Simple UI**: Basic test interface (will be improved in Step 4)
-- **Local Only**: Requires Ollama and gpt-oss 20B locally
-- **No Authentication**: Basic security (suitable for development)
-- **Limited Dataset**: Currently 250 test emails (will expand in Step 3)
+```
+Pulse/
+├── app.py                          # Streamlit UI (Browse, Aggregates, Stats)
+├── evaluate_emails.py              # Batch precompute (small/big), writes data/predictions_*.csv
+├── backend/app/llm_processor.py    # Ollama integration + robust JSON extraction
+├── ModelFinetuning/data_creation/emails_data/email_dataset_final.csv
+└── data/
+    ├── predictions_small.csv
+    └── predictions_big.csv
+```
 
-## 🤝 Contributing
+## License
 
-This is a proof-of-concept project. The focus is on demonstrating local LLM capabilities for political email analysis.
-
-## 📄 License
-
-Project-specific license - see project documentation for details.
-
----
-
-**Built for parliamentarians who need local, private email analysis without external dependencies.**
+Project-specific license – see project documentation for details.
 
