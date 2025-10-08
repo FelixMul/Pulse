@@ -68,6 +68,20 @@ Inputs and outputs:
 uv run streamlit run app.py
 ```
 
+## UI Screenshots
+
+### Browse tab
+![Browse](assets/Browse.png)
+
+### Aggregates: Topics distribution
+![Topics](assets/topics.png)
+
+### Aggregates: Sentiment distribution
+![Sentiment](assets/sentiment.png)
+
+### Aggregates: Topic trend over time
+![Time series](assets/timeseries.png)
+
 ### Using the UI
 
 - Select model (small/big) from the sidebar.
