@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).parent / "backend"))
 from app.llm_processor import LLMProcessor  # type: ignore
 
 
-DATASET_PATH = Path("ModelFinetuning/data_creation/emails_data/email_dataset_final.csv")
+DATASET_PATH = Path("synthetic_data_creation/data_creation/emails_data/email_dataset_final.csv")
 OUTPUT_DIR = Path("data")
 
 MODEL_MAP = {

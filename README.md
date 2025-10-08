@@ -57,7 +57,7 @@ uv run python evaluate_emails.py --model big
 
 Inputs and outputs:
 
-- Input dataset: `ModelFinetuning/data_creation/emails_data/email_dataset_final.csv`
+- Input dataset: `synthetic_data_creation/data_creation/emails_data/email_dataset_final.csv`
 - Outputs:
   - `data/predictions_small.csv` (llama3.1:8b-instruct)
   - `data/predictions_big.csv` (gpt-oss:20b)
@@ -73,14 +73,14 @@ uv run streamlit run app.py
 ### Browse tab
 ![Browse](assets/Browse.png)
 
+### Aggregates: Topic trend over time
+![Time series](assets/timeseries.png)
+
 ### Aggregates: Topics distribution
 ![Topics](assets/topics.png)
 
 ### Aggregates: Sentiment distribution
 ![Sentiment](assets/sentiment.png)
-
-### Aggregates: Topic trend over time
-![Time series](assets/timeseries.png)
 
 ### Using the UI
 
@@ -108,7 +108,7 @@ Pulse/
 ├── app.py                          # Streamlit UI (Browse, Aggregates, Stats)
 ├── evaluate_emails.py              # Batch precompute (small/big), writes data/predictions_*.csv
 ├── backend/app/llm_processor.py    # Ollama integration + robust JSON extraction
-├── ModelFinetuning/data_creation/emails_data/email_dataset_final.csv
+├── synthetic_data_creation/data_creation/emails_data/email_dataset_final.csv
 └── data/
     ├── predictions_small.csv
     └── predictions_big.csv

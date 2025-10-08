@@ -21,7 +21,7 @@ from app.llm_processor import llm_processor  # type: ignore
 from app.simple_storage import storage  # type: ignore
 
 # Data and model configuration
-DATASET_PATH = Path("ModelFinetuning/data_creation/emails_data/email_dataset_final.csv")
+DATASET_PATH = Path("synthetic_data_creation/data_creation/emails_data/email_dataset_final.csv")
 PREDICTIONS_DIR = Path("data")
 MODEL_MAP = {
     "small": "llama3.1:8b-instruct",
