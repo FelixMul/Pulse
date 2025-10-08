@@ -45,9 +45,9 @@ class LLMProcessor:
             "very_negative", "negative", "neutral", "positive", "very_positive"
         ]
     
-    async def analyze_email(self, email_text: str) -> Dict[str, Any]:
+    async def analyze_email(self, email_text: str, model_tag: Optional[str] = None) -> Dict[str, Any]:
         """
-        Analyze email using gpt-oss 20B for topic and sentiment
+        Analyze email using local LLM for topic and sentiment
         Returns structured JSON with topic, sentiment, confidence, and summary
         """
         try:
@@ -55,7 +55,7 @@ class LLMProcessor:
             prompt = self._create_analysis_prompt(email_text)
             
             # Call Ollama API
-            analysis_result = await self._call_ollama(prompt)
+            analysis_result = await self._call_ollama(prompt, model_tag=model_tag)
             
             if analysis_result:
                 # Validate and return result
@@ -80,18 +80,28 @@ class LLMProcessor:
         else:
             print(f"DEBUG: Email sent in full ({original_length} characters)")
             
-        prompt = f"""IMPORTANT: Do not explain or think. Output only JSON.
-
-EMAIL: {email_text}
-
-Choose from these topics: {', '.join(self.topics)}
-Choose from these sentiments: {', '.join(self.sentiments)}
-
-OUTPUT ONLY JSON:
-{{"topic": "topic_name", "sentiment": "sentiment_name", "confidence": 0.8, "summary": "one sentence"}}"""
+        # Instruct model to include a single fenced JSON block we can extract reliably
+        prompt = (
+            "You are an assistant that ALWAYS includes exactly one fenced JSON code block in your reply.\n"
+            "You may include brief text before/after, but MUST include a Markdown JSON block like this:\n\n"
+            "```json\n"
+            "{\n"
+            "  \"topic\": \"...\",\n"
+            "  \"sentiment\": \"very_negative|negative|neutral|positive|very_positive\",\n"
+            "  \"confidence\": 0.0,\n"
+            "  \"summary\": \"one sentence\"\n"
+            "}\n"
+            "```\n\n"
+            "Rules:\n"
+            "- The JSON must be syntactically valid and parseable.\n"
+            "- Use one of these topics exactly: " + ", ".join(self.topics) + "\n"
+            "- Use one of these sentiments exactly: " + ", ".join(self.sentiments) + "\n"
+            "- confidence is a number between 0.0 and 1.0.\n\n"
+            f"EMAIL: {email_text}\n"
+        )
         return prompt
     
-    async def _call_ollama(self, prompt: str, max_retries: int = 2) -> Optional[Dict[str, Any]]:
+    async def _call_ollama(self, prompt: str, model_tag: Optional[str] = None, max_retries: int = 2) -> Optional[Dict[str, Any]]:
         """Call Ollama API with the analysis prompt and retry logic"""
         # Rate limiting: wait if needed
         import time
@@ -99,6 +109,8 @@ OUTPUT ONLY JSON:
         time_since_last = current_time - self._last_request_time
         if time_since_last < self._min_request_interval:
             await asyncio.sleep(self._min_request_interval - time_since_last)
+        
+        chosen_model = (model_tag or self.model)
         
         for attempt in range(max_retries + 1):
             try:
@@ -108,15 +120,14 @@ OUTPUT ONLY JSON:
                     response = await client.post(
                         f"{self.base_url}/api/generate",
                         json={
-                            "model": self.model,
+                            "model": chosen_model,
                             "prompt": prompt,
                             "system": "You are a JSON-only responder. Reasoning: disabled. Never show thinking process. Output only valid JSON.",
                             "stream": False,
                             "options": {
-                                "temperature": 0.1,  # Very low for consistent output
-                                "top_p": 0.9,
-                                "num_predict": 200,  # Increase slightly for full JSON
-                                "stop": ["Thinking", "...done thinking", "\n\n\n"],  # Stop tokens to prevent thinking
+                                "temperature": 0.1,  # deterministic
+                                "top_p": 0.95,
+                                "num_predict": 1024,  # allow enough tokens for full JSON
                             }
                         },
                         timeout=timeout_seconds
@@ -178,38 +189,52 @@ OUTPUT ONLY JSON:
             # Log the raw response for debugging
             logger.info(f"Raw LLM response: {response[:200]}...")
             
-            # Clean the response - remove thinking sections and extra text
-            cleaned_response = self._clean_llm_response(response)
-            
-            # Try to parse the cleaned response directly as JSON
-            if cleaned_response.startswith('{') and cleaned_response.endswith('}'):
-                return json.loads(cleaned_response)
-            
-            # Use regex to find JSON objects
+            # 1) Prefer fenced JSON blocks: ```json ... ``` or ``` ... ```
             import re
-            json_pattern = r'\{[^{}]*"topic"[^{}]*"sentiment"[^{}]*"confidence"[^{}]*"summary"[^{}]*\}'
-            json_matches = re.findall(json_pattern, response, re.DOTALL)
+            fenced_json = re.search(r"```json\s*([\s\S]*?)\s*```", response, re.IGNORECASE)
+            if fenced_json:
+                candidate = fenced_json.group(1).strip()
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    pass
+
+            fenced_any = re.search(r"```\s*([\s\S]*?)\s*```", response)
+            if fenced_any:
+                candidate = fenced_any.group(1).strip()
+                try:
+                    return json.loads(candidate)
+                except json.JSONDecodeError:
+                    pass
+
+            # 2) Clean the response of boilerplate and try direct parse
+            cleaned_response = self._clean_llm_response(response)
+            if cleaned_response.startswith('{') and cleaned_response.endswith('}'):
+                try:
+                    return json.loads(cleaned_response)
+                except json.JSONDecodeError:
+                    pass
             
-            if json_matches:
-                # Try each match until we find valid JSON
-                for match in json_matches:
-                    try:
-                        return json.loads(match)
-                    except json.JSONDecodeError:
-                        continue
-            
-            # Fallback: look for any JSON-like structure
-            json_pattern_loose = r'\{[^{}]*\}'
-            json_matches_loose = re.findall(json_pattern_loose, response)
-            
-            for match in json_matches_loose:
+            # 3) Use regex to find probable objects with required keys
+            json_pattern = r'\{[\s\S]*?\}'
+            json_matches = re.findall(json_pattern, response)
+            for match in json_matches:
                 try:
                     parsed = json.loads(match)
-                    # Check if it has our required fields
-                    if all(key in parsed for key in ['topic', 'sentiment', 'confidence', 'summary']):
+                    if all(k in parsed for k in ["topic", "sentiment", "confidence", "summary"]):
                         return parsed
                 except json.JSONDecodeError:
                     continue
+            
+            # 4) Attempt balanced-brace extraction for the largest object
+            balanced = self._extract_first_balanced_json(response)
+            if balanced:
+                try:
+                    parsed = json.loads(balanced)
+                    if all(k in parsed for k in ["topic", "sentiment", "confidence", "summary"]):
+                        return parsed
+                except json.JSONDecodeError:
+                    pass
             
             logger.warning(f"No valid JSON found in response: {response[:100]}...")
             return None
@@ -218,6 +243,22 @@ OUTPUT ONLY JSON:
             logger.error(f"JSON extraction failed: {str(e)}")
             logger.error(f"Response was: {response[:200]}...")
             return None
+
+    def _extract_first_balanced_json(self, text: str) -> Optional[str]:
+        """Scan text to extract the first balanced {...} block."""
+        start = -1
+        depth = 0
+        for i, ch in enumerate(text):
+            if ch == '{':
+                if depth == 0:
+                    start = i
+                depth += 1
+            elif ch == '}':
+                if depth > 0:
+                    depth -= 1
+                    if depth == 0 and start != -1:
+                        return text[start:i+1]
+        return None
     
     def _clean_llm_response(self, response: str) -> str:
         """Clean LLM response to extract just the JSON"""
@@ -311,7 +352,7 @@ OUTPUT ONLY JSON:
             "status": "fallback"
         }
     
-    async def test_connection(self) -> bool:
+    async def test_connection(self, model_tag: Optional[str] = None) -> bool:
         """Test if Ollama server and model are accessible"""
         try:
             async with httpx.AsyncClient() as client:
@@ -323,7 +364,8 @@ OUTPUT ONLY JSON:
                 # Check if our model is available
                 models = response.json().get("models", [])
                 model_names = [model.get("name", "") for model in models]
-                return self.model in model_names
+                check_model = (model_tag or self.model)
+                return check_model in model_names
                 
         except Exception as e:
             logger.error(f"Ollama connection test failed: {str(e)}")
